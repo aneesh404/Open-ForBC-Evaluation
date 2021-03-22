@@ -1,4 +1,9 @@
-#include <bits/stdc++.h>
+#include <vector>
+#include<thread>
+#include<mutex>
+#include<iostream>
+#include <algorithm>
+
 #define VSIZE 100000
 
 
