@@ -1,59 +1,55 @@
 #include<iostream>
+#include<unordered_map>
+#include<list>
 #include<vector>
-#include<fstream>
-#include<string>
-class Cache{
+#define capacity 5  
+
+template <typename T>
+class Cache {
     private:
-        // std::unordered_map<int,char>cache;
-        std::vector<std::pair <int,std::string> >cache;
-        std::vector<std::string>data_array;
+        std::list<std::pair<int, T> > cache;
+        std::vector<T> data_array;
+        std::unordered_map<int, typename std::list<std::pair<int, T>>::iterator> locator;
+        ssize_t size;
     public:
-    void fillDataArray(void);
-    std::string elementCall(int key);
-    void showCache();
-    Cache(){
-        cache = {std::make_pair(1,"A"),std::make_pair(2,"B")};
-        data_array = {"A", "B", "C", "D", "E", "F", "G", "H", "I"};
-    }
+        Cache<T>(ssize_t size, std::vector<T> data_array) : size(size), data_array(data_array) { }
+
+        T query (int key) {
+            if(locator.find(key) != locator.end()){
+                auto itr = locator[key];
+                T val = itr->second;
+                cache.erase(itr);
+                cache.push_front({key,val});
+                locator[key] = cache.begin();
+                return val;
+            }
+            if(locator.size() == size){
+                locator.erase(cache.back().first);
+                cache.pop_back();
+            }
+            T val = data_array[key-1];
+            cache.push_front({key, val});
+            locator[key] = cache.begin();
+            return val;
+        }
+        void print_cache() {
+            std::cout<<"[";
+            for(auto itr = cache.begin();itr!=cache.end();itr++)
+                std::cout<<itr->first<<":\""<<itr->second<<"\""<<", ";
+            std::cout<<"]"<<"\n";
+        }
 };
 
-// void Cache::fillDataArray(void){
-//     std::ifstream infile;
-//     infile.open("input1.txt");
-//     infile >> data_array;
-//     infile.close();
-// }
-
-void Cache::showCache(){
-    for(auto itr=cache.begin();itr!=cache.end();itr++){
-        std::cout<<itr->first;
-        std::cout<<itr->second;
-    }
-}
-
-std::string Cache::elementCall(int key){
-    std::string value;
-    std::vector<std::pair <int,std::string> >::iterator itr;
-    for(itr = cache.begin();itr!=cache.end();itr++){
-        if(itr->first == key){
-            int k = itr->first;
-            value = itr->second;
-            cache.erase(itr);
-            cache.insert(cache.begin(),std::make_pair(k,value));
-            break;
-        }
-    }
-    cache.insert(cache.begin(),std::make_pair(key,data_array[key-1]));
-    return value;
-}
-
-
-
-
 int main(){
-    Cache ins1;
-    std::cout<<ins1.elementCall(5);
-    std::cout<<"\n";
-    ins1.showCache();
+    Cache<std::string> instance1(4, {"1","2","3","4","5","6","7","8","9","10"});
+    std::cout<<"Corresponding value to 2-> "<<instance1.query(2)<<"\n";
+    std::cout<<"Corresponding value to 1-> "<<instance1.query(1)<<"\n";
+    std::cout<<"Corresponding value to 3-> "<<instance1.query(3)<<"\n";
+    std::cout<<"Corresponding value to 5-> "<<instance1.query(5)<<"\n";
+    std::cout<<"Corresponding value to 4-> "<<instance1.query(4)<<"\n";
+    instance1.print_cache();
+    std::cout<<"Corresponding value to 2-> "<<instance1.query(2)<<"\n";
+    std::cout<<"Corresponding value to 4-> "<<instance1.query(4)<<"\n";
+    instance1.print_cache();
     return 0;
 }
